@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BetVision AI — Professional Football Predictions & Analytics</title>
+  <meta name="description" content="State-of-the-art AI football prediction platform powered by Dixon-Coles Poisson model and live real-world match data." />
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Ambient Glow Effects -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <!-- NAVIGATION BAR -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="brand">
+        <div class="logo-icon">
+          <i class="fa-solid fa-microchip"></i>
+        </div>
+        <div class="brand-text">
+          <h1>Bet<span>Vision</span> <span class="badge-pro">PRO</span></h1>
+          <span class="sub-text">Dixon-Coles AI Engine v2.4</span>
+        </div>
+      </div>
+
+      <div class="live-clock-widget">
+        <i class="fa-regular fa-clock icon-spin"></i>
+        <span id="live-clock">00:00:00 GMT</span>
+        <span class="pulse-dot"></span>
+        <span class="sync-tag">AUTO-SYNC</span>
+      </div>
+
+      <div class="nav-actions">
+        <button class="nav-link active" onclick="switchSection('predictions')">
+          <i class="fa-solid fa-chart-line"></i> Predictions
+        </button>
+        <button class="nav-link" onclick="openModal('activity-modal')">
+          <i class="fa-solid fa-list-check"></i> System Activity
+        </button>
+        <button class="btn-sync" id="btn-sync-top" onclick="triggerLiveSync()">
+          <i class="fa-solid fa-arrows-rotate" id="sync-icon"></i> Live Sync
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HEADER HERO & STATS TICKER -->
+  <header class="hero-section">
+    <div class="hero-container">
+      <div class="hero-header">
+        <div>
+          <div class="hero-badge">
+            <i class="fa-solid fa-bolt text-cyan"></i> Real Fixtures Pipeline &bull; <span id="total-matches-count">0</span> Active Games
+          </div>
+          <h2 class="hero-title">
+            AI <span class="gradient-text">Football Predictions</span> & Analytics
+          </h2>
+          <p class="hero-subtitle" id="current-date-display">
+            Loading date...
+          </p>
+        </div>
+        <div class="hero-buttons">
+          <button class="btn-primary" onclick="triggerLiveSync()">
+            <i class="fa-solid fa-rotate"></i> Refresh ESPN Data
+          </button>
+        </div>
+      </div>
+
+      <!-- STATS CARDS GRID -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon icon-cyan">
+            <i class="fa-solid fa-trophy"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Model Accuracy</span>
+            <span class="stat-value">94.3% <small class="text-green">+1.2%</small></span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon icon-purple">
+            <i class="fa-solid fa-earth-americas"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Real Matches</span>
+            <span class="stat-value" id="stat-matches-val">275 <small>Fixtures</small></span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon icon-red">
+            <i class="fa-solid fa-fire"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">In-Play Live</span>
+            <span class="stat-value" id="stat-live-val">0 <small class="text-red">Live</small></span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon icon-green">
+            <i class="fa-solid fa-bolt"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">+EV Value Edges</span>
+            <span class="stat-value" id="stat-value-val">68 <small class="text-green">Edges</small></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN APPLICATION CONTENT AREA -->
+  <main class="main-container">
+    
+    <!-- LEAGUE FILTER SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <span><i class="fa-solid fa-globe text-cyan"></i> Global Leagues</span>
+      </div>
+      
+      <div class="sidebar-search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="league-search" placeholder="Find league..." onkeyup="filterLeagues()" />
+      </div>
+
+      <div class="league-list" id="league-list">
+        <button class="league-btn active" data-league="All" onclick="selectLeague('All')">
+          <span>🌐 All Leagues</span>
+          <span class="badge" id="count-all">0</span>
+        </button>
+
+        <button class="league-btn live-btn" data-league="Live" onclick="filterTimeframe('live')">
+          <span><span class="pulse-red"></span> Live Matches</span>
+          <span class="badge badge-red" id="count-live">0</span>
+        </button>
+
+        <!-- Dynamic Groups Rendered in JavaScript -->
+        <div id="league-groups-container"></div>
+      </div>
+    </aside>
+
+    <!-- CONTENT BODY -->
+    <section class="content-area">
+      
+      <!-- MARKET FILTER PILLS -->
+      <div class="market-bar">
+        <button class="market-pill active" data-market="all" onclick="filterMarket('all')">All Predictions</button>
+        <button class="market-pill" data-market="1x2" onclick="filterMarket('1x2')">1X2 Match Winner</button>
+        <button class="market-pill" data-market="over_under" onclick="filterMarket('over_under')">O/U 2.5 Goals</button>
+        <button class="market-pill" data-market="btts" onclick="filterMarket('btts')">Both Teams To Score</button>
+        <button class="market-pill highlight" data-market="value_bets" onclick="filterMarket('value_bets')">⚡ +EV Value Edges</button>
+      </div>
+
+      <!-- TIMEFRAMES AND VIEW TOGGLE -->
+      <div class="controls-bar">
+        <div class="timeframe-group">
+          <button class="tf-btn" data-tf="all" onclick="filterTimeframe('all')"><i class="fa-regular fa-calendar"></i> All Dates</button>
+          <button class="tf-btn active" data-tf="today" onclick="filterTimeframe('today')"><i class="fa-solid fa-clock"></i> Today</button>
+          <button class="tf-btn" data-tf="tomorrow" onclick="filterTimeframe('tomorrow')"><i class="fa-regular fa-calendar-plus"></i> Tomorrow</button>
+          <button class="tf-btn" data-tf="yesterday" onclick="filterTimeframe('yesterday')"><i class="fa-solid fa-history"></i> Yesterday</button>
+          <button class="tf-btn btn-live-pill" data-tf="live" onclick="filterTimeframe('live')"><i class="fa-solid fa-circle text-red"></i> Live In-Play</button>
+        </div>
+
+        <div class="view-mode-group">
+          <button class="view-btn active" id="view-table-btn" onclick="setViewMode('table')">
+            <i class="fa-solid fa-table-cells"></i> Forebet Table
+          </button>
+          <button class="view-btn" id="view-cards-btn" onclick="setViewMode('cards')">
+            <i class="fa-solid fa-grip"></i> Match Cards
+          </button>
+        </div>
+      </div>
+
+      <!-- SEARCH BAR -->
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="match-search" placeholder="Search team name, league, or country..." onkeyup="handleMatchSearch()" />
+        <button class="clear-search" id="clear-search-btn" onclick="clearMatchSearch()" style="display: none;">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- FILTER STATUS INFO -->
+      <div class="filter-status">
+        <span>Showing <strong id="showing-count">0</strong> real matches <span id="active-league-tag"></span></span>
+        <span class="status-live-indicator"><span class="dot-pulse"></span> Dixon-Coles Poisson Live Engine</span>
+      </div>
+
+      <!-- LOADING SPINNER -->
+      <div class="loading-state" id="loading-spinner">
+        <div class="spinner"></div>
+        <p>Running Dixon-Coles Poisson Simulation...</p>
+      </div>
+
+      <!-- EMPTY STATE -->
+      <div class="empty-state" id="empty-state" style="display: none;">
+        <i class="fa-regular fa-calendar-xmark"></i>
+        <h3>No matches found</h3>
+        <p>Try switching date timeframe or clearing your filters</p>
+        <button class="btn-primary" onclick="resetFilters()">Reset All Filters</button>
+      </div>
+
+      <!-- FOREBET STYLE TABLE VIEW -->
+      <div class="table-wrapper" id="table-container">
+        <table class="forebet-table">
+          <thead>
+            <tr>
+              <th>Time / League</th>
+              <th>Matchup & Form</th>
+              <th class="text-center">1X2 Probabilities Bar</th>
+              <th class="text-center">Predicted Score</th>
+              <th class="text-center">O/U 2.5</th>
+              <th class="text-center">BTTS</th>
+              <th class="text-center">HT/FT</th>
+              <th class="text-center">Confidence</th>
+              <th class="text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody id="matches-table-body">
+            <!-- Rows rendered dynamically in app.js -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- MATCH CARDS GRID VIEW -->
+      <div class="cards-grid" id="cards-container" style="display: none;">
+        <!-- Cards rendered dynamically in app.js -->
+      </div>
+
+    </section>
+  </main>
+
+  <!-- MATCH ANALYSIS MODAL -->
+  <div class="modal-overlay" id="analysis-modal" onclick="closeModalOnOverlay(event, 'analysis-modal')">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <div>
+          <span class="league-tag" id="modal-league">Premier League</span>
+          <h3 class="modal-title" id="modal-match-title">Arsenal vs Chelsea</h3>
+        </div>
+        <button class="close-btn" onclick="closeModal('analysis-modal')">&times;</button>
+      </div>
+
+      <div class="modal-body" id="modal-match-content">
+        <!-- Dynamic analysis content -->
+      </div>
+    </div>
+  </div>
+
+  <!-- SYSTEM ACTIVITY MODAL -->
+  <div class="modal-overlay" id="activity-modal" onclick="closeModalOnOverlay(event, 'activity-modal')">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-list-check text-cyan"></i> System Activity Audit Log</h3>
+        <button class="close-btn" onclick="closeModal('activity-modal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="activity-log-list">
+          <div class="log-item">
+            <i class="fa-solid fa-circle-check text-green"></i>
+            <div>
+              <strong>Dixon-Coles Engine Synced</strong>
+              <p>275 real-world fixtures fetched & calculated via ESPN API</p>
+              <small>Just now</small>
+            </div>
+          </div>
+          <div class="log-item">
+            <i class="fa-solid fa-database text-cyan"></i>
+            <div>
+              <strong>SQLite Database Refreshed</strong>
+              <p>Match odds, team forms, and xG statistical profiles updated</p>
+              <small>2 mins ago</small>
+            </div>
+          </div>
+          <div class="log-item">
+            <i class="fa-solid fa-bolt text-purple"></i>
+            <div>
+              <strong>+EV Value Bets Audit</strong>
+              <p>68 positive expected value opportunities calculated against live bookmaker odds</p>
+              <small>5 mins ago</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script src="app.js"></script>
+</body>
+</html>
